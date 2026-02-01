@@ -1,0 +1,108 @@
+import numpy as np
+
+class AdaptiveCMAES:
+    def __init__(self, budget=10000, dim=10, mu_factor=0.25, initial_sigma=0.5, novelty_threshold=0.1):
+        self.budget = budget
+        self.dim = dim
+        self.mu = int(dim * mu_factor)  # Number of parents
+        self.weights = np.log(self.mu + 0.5) - np.log(np.arange(1, self.mu + 1))
+        self.weights /= np.sum(self.weights)
+        self.mueff = np.sum(self.weights)**2 / np.sum(self.weights**2)
+        self.cc = (4 + self.mueff / self.dim) / (self.dim + 4 + 2 * self.mueff / self.dim)
+        self.cs = (self.mueff + 2) / (self.dim + self.mueff + 5)
+        self.c1 = 2 / ((self.dim + 1.3)**2 + self.mueff)
+        self.cmu = min(1 - self.c1, 2 * (self.mueff - 2 + 1 / self.mueff) / ((self.dim + 2)**2 + self.mueff))
+        self.damps = 1 + 2 * max(0, np.sqrt((self.mueff - 1) / (self.dim + 1)) - 1) + self.cs
+        self.mean = np.zeros(dim)
+        self.sigma = initial_sigma
+        self.pc = np.zeros(dim)
+        self.ps = np.zeros(dim)
+        self.C = np.eye(dim)
+        self.B = np.eye(dim)
+        self.D = np.ones(dim)
+        self.C_eigen_age = 0
+        self.f_opt = np.Inf
+        self.x_opt = None
+        self.novelty_archive = []
+        self.novelty_threshold = novelty_threshold
+
+    def sample_population(self, popsize, func):
+        z = np.random.normal(0, 1, size=(popsize, self.dim))
+        x = self.mean + self.sigma * (self.B @ (self.D * z).T).T
+        x = np.clip(x, func.bounds.lb, func.bounds.ub)  # Boundary handling
+        f = np.array([func(xi) for xi in x])
+        return x, f, z
+
+    def calculate_novelty(self, x):
+        if not self.novelty_archive:
+            return np.inf  # High novelty for first sample
+        distances = [np.linalg.norm(x - archive_x) for archive_x in self.novelty_archive]
+        return np.min(distances)
+
+    def update_distribution(self, x, f, z, popsize, func):
+        idx = np.argsort(f)
+        x = x[idx]
+        z = z[idx]
+        x_mu = x[:self.mu]
+        z_mu = z[:self.mu]
+
+        self.mean = np.sum(self.weights.reshape(-1, 1) * x_mu, axis=0)
+
+        zmean = np.sum(self.weights.reshape(-1, 1) * z_mu, axis=0)
+        self.ps = (1 - self.cs) * self.ps + np.sqrt(self.cs * (2 - self.cs) * self.mueff) * (self.B @ zmean)
+        hsig = np.linalg.norm(self.ps) / np.sqrt(1 - (1 - self.cs)**(2 * (self.budget // popsize))) < 1.4 + 2 / (self.dim + 1)
+        self.pc = (1 - self.cc) * self.pc + hsig * np.sqrt(self.cc * (2 - self.cc) * self.mueff) * (self.mean - self.mean) / self.sigma
+
+        artmp = (1 / self.sigma) * (x_mu - self.mean).T
+        self.C = (1 - self.c1 - self.cmu) * self.C + self.c1 * (self.pc.reshape(-1, 1) @ self.pc.reshape(1, -1) + (1-hsig) * self.cc * (2-self.cc) * self.C) + self.cmu * artmp @ np.diag(self.weights) @ artmp.T
+
+        self.sigma *= np.exp((self.cs / self.damps) * (np.linalg.norm(self.ps) / np.sqrt(1 - (1 - self.cs)**(2 * (self.budget // popsize))) / np.sqrt(self.dim) - 1))
+
+        # Novelty Search component: Add diverse solutions to archive
+        for xi in x:
+            novelty = self.calculate_novelty(xi)
+            if novelty > self.novelty_threshold:
+                self.novelty_archive.append(xi)
+                if len(self.novelty_archive) > 50:  # Limit archive size
+                    self.novelty_archive.pop(0)
+
+    def __call__(self, func):
+        popsize = 4 + int(3 * np.log(self.dim))
+        evals = 0
+
+        while evals < self.budget:
+            x, f, z = self.sample_population(popsize, func)
+            evals += popsize
+
+            for i in range(popsize):
+                if f[i] < self.f_opt:
+                    self.f_opt = f[i]
+                    self.x_opt = x[i]
+
+            self.update_distribution(x, f, z, popsize, func)
+            self.C_eigen_age += 1
+
+            if self.C_eigen_age > self.budget // (10 * popsize): # Re-compute eigenvalue decomposition after a while
+                self.C_eigen_age = 0
+                self.C = np.triu(self.C) + np.triu(self.C, 1).T
+                try:
+                    self.D, self.B = np.linalg.eigh(self.C)
+                    self.D = np.sqrt(self.D)
+                    self.D[self.D < 1e-10] = 1e-10  # Avoid tiny values
+                except np.linalg.LinAlgError:
+                    # Handle non-positive definite matrix
+                    self.C = np.eye(self.dim)  # Reset covariance matrix
+                    self.B = np.eye(self.dim)
+                    self.D = np.ones(self.dim)
+                    
+
+            # Adaptive Population Size Adjustment (example)
+            if evals % (self.budget // 10) == 0:
+                 # Rough estimate of landscape ruggedness
+                fitness_std = np.std(f)
+                if fitness_std < 1e-3:  # Flat landscape, reduce popsize
+                   popsize = max(4, popsize // 2)
+                elif fitness_std > 1:   # Rugged landscape, increase popsize
+                   popsize = min(self.dim * 10, popsize * 2)
+
+        return self.f_opt, self.x_opt
