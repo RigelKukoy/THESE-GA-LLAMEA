@@ -1,0 +1,6 @@
+# GA-LLAMEA Dependencies
+# These are the minimal dependencies required for standalone use.
+# BLADE provides additional dependencies when integrated.
+
+# Core (no external dependencies beyond Python stdlib)
+# numpy is optional but recommended for performance
