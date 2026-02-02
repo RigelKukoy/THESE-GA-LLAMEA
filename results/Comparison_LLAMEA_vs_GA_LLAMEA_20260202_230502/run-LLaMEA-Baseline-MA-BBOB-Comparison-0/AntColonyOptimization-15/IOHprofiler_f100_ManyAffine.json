@@ -1,0 +1,16 @@
+{
+	"version": "0.3.22", 
+	"suite": "unknown_suite", 
+	"function_id": 100, 
+	"function_name": "ManyAffine", 
+	"maximization": false, 
+	"algorithm": {"name": "AntColonyOptimization", "info": "algorithm_info"},
+	"attributes": ["evaluations", "raw_y"],
+	"scenarios": [
+		{"dimension": 5,
+		"path": "data_f100_ManyAffine/IOHprofiler_f100_DIM5.dat",
+		"runs": [
+			{"instance": 5, "evals": 5000, "best": {"evals": 4391, "y": 0.5134202573098889, "x": [-4.517763610662009, 3.517964223203805, -1.5876018873470916, -4.016335874829665, 0.2536198280820452]}}
+		]}
+	]
+}

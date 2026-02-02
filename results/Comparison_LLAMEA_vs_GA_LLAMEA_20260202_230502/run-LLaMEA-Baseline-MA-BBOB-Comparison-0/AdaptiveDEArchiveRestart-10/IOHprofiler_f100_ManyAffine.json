@@ -1,0 +1,16 @@
+{
+	"version": "0.3.22", 
+	"suite": "unknown_suite", 
+	"function_id": 100, 
+	"function_name": "ManyAffine", 
+	"maximization": false, 
+	"algorithm": {"name": "AdaptiveDEArchiveRestart", "info": "algorithm_info"},
+	"attributes": ["evaluations", "raw_y"],
+	"scenarios": [
+		{"dimension": 5,
+		"path": "data_f100_ManyAffine/IOHprofiler_f100_DIM5.dat",
+		"runs": [
+			{"instance": 0, "evals": 5000, "best": {"evals": 2476, "y": 1.9527217370332, "x": [0.8444179410871997, -0.5157489180441578, -0.636538292793712, -3.9906140343460312, -4.715059900681851]}}
+		]}
+	]
+}

@@ -1,0 +1,16 @@
+{
+	"version": "0.3.22", 
+	"suite": "unknown_suite", 
+	"function_id": 100, 
+	"function_name": "ManyAffine", 
+	"maximization": false, 
+	"algorithm": {"name": "CooperativeSwarm", "info": "algorithm_info"},
+	"attributes": ["evaluations", "raw_y"],
+	"scenarios": [
+		{"dimension": 5,
+		"path": "data_f100_ManyAffine/IOHprofiler_f100_DIM5.dat",
+		"runs": [
+			{"instance": 8, "evals": 5000, "best": {"evals": 4974, "y": 1.4742541691931596e-06, "x": [3.563169408831631, -1.6813495964190404, -0.4590364547161002, -3.2707377209800903, 1.1655875345531856]}}
+		]}
+	]
+}

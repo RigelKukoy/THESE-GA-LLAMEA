@@ -1,0 +1,16 @@
+{
+	"version": "0.3.22", 
+	"suite": "unknown_suite", 
+	"function_id": 100, 
+	"function_name": "ManyAffine", 
+	"maximization": false, 
+	"algorithm": {"name": "AdaptiveSlimeMoldOptimization", "info": "algorithm_info"},
+	"attributes": ["evaluations", "raw_y"],
+	"scenarios": [
+		{"dimension": 5,
+		"path": "data_f100_ManyAffine/IOHprofiler_f100_DIM5.dat",
+		"runs": [
+			{"instance": 5, "evals": 5000, "best": {"evals": 4273, "y": 0.011765276341756642, "x": [-3.7403041551462457, 2.632021690695357, -2.2115984220765923, -4.18556269626278, -0.30665443224863964]}}
+		]}
+	]
+}

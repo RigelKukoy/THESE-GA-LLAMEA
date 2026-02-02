@@ -1,0 +1,16 @@
+{
+	"version": "0.3.22", 
+	"suite": "unknown_suite", 
+	"function_id": 100, 
+	"function_name": "ManyAffine", 
+	"maximization": false, 
+	"algorithm": {"name": "HybridDEGaussianRestart", "info": "algorithm_info"},
+	"attributes": ["evaluations", "raw_y"],
+	"scenarios": [
+		{"dimension": 5,
+		"path": "data_f100_ManyAffine/IOHprofiler_f100_DIM5.dat",
+		"runs": [
+			{"instance": 0, "evals": 10001, "best": {"evals": 2795, "y": 0.3755731609629901, "x": [0.7190131466054902, -1.0666692503037625, -0.4805167986808868, -4.215645301840239, -4.414779638184384]}}
+		]}
+	]
+}

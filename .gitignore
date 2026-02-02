@@ -34,7 +34,7 @@ blade_env_*/
 *.swo
 
 # Results and logs (large files)
-results/
+# results/
 *.pkl
 *.dat
 
